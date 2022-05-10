@@ -10,7 +10,17 @@
 #ifndef CONVERSION_H
 #define CONVERSION_H
 
+/**
+ * @brief Convierte grados fahrenheit a celsius.
+ * 
+ * @return grados celsius
+ */
 double celsius(double);
+/**
+ * @brief Convierte grados celsius a fahrenheit.
+ * 
+ * @return grados fahrenheit
+ */
 double fahrenheit(double);
 
 
