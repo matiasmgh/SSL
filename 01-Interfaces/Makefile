@@ -1,4 +1,4 @@
-DIR := C:\Users\Matias\Documents\Facultad\SSL\01-Interfaces
+DIR := $(subst /,\,${CURDIR})
 C_FLAGS := -std=c18
 
 BIN := $(DIR)\TablasDeConversion.exe
