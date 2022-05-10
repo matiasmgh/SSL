@@ -1,0 +1,27 @@
+DIR := C:\Users\Matias\Documents\Facultad\SSL\01-Interfaces
+C_FLAGS := -std=c18
+
+BIN := $(DIR)\TablasDeConversion.exe
+TABLA_CONVERSION_OBJ := $(DIR)\TablasDeConversion.o
+CONVERSION_OBJ := $(DIR)\Conversion.o
+TABLA_CONVERSION_C := $(DIR)\TablasDeConversion.c
+CONVERSION_C := $(DIR)\Conversion.c
+CONVERSION_H := $(DIR)\Conversion.h
+
+run: $(BIN)
+	$(BIN)
+
+$(BIN): $(TABLA_CONVERSION_OBJ) $(CONVERSION_OBJ)
+	gcc $(TABLA_CONVERSION_OBJ) $(CONVERSION_OBJ) -o $(BIN)
+
+$(TABLA_CONVERSION_OBJ): $(TABLA_CONVERSION_C) $(CONVERSION_H)
+	gcc -c $(TABLA_CONVERSION_C) $(C_FLAGS) -o $(TABLA_CONVERSION_OBJ)
+
+$(CONVERSION_OBJ): $(CONVERSION_C) $(CONVERSION_H)
+	gcc -c $(CONVERSION_C) -std=c18 -o $(CONVERSION_OBJ)
+
+clean:
+	del $(CONVERSION_OBJ)
+	del $(BIN)
+	del $(TABLA_CONVERSION_OBJ)
+
