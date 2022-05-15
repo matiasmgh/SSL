@@ -30,3 +30,7 @@ Desarrollar un programa que imprima dos tablas de conversion, una de Fahrenheit 
 * Utilizar *assert*
 * Utilizar *const*
 * Utilizar *for* con declaracion (C99)
+
+## Diagrama del Makefile
+![makefile_interfaz_ejemplo drawio](https://user-images.githubusercontent.com/73591562/168453932-095af382-4582-49b2-b163-9c5b99317aff.png)
+
