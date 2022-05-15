@@ -45,28 +45,29 @@ void printSuccessfulMessage(double valorCalculado) {
 void testCelsiusToFahrenheit() {
     printf("TESTS DE CONVERSION DE Celsius A Fahrenheit: \n");
     //Epsilon de referencia.
-    double diferenciaAceptable = 0.0002;
+    const double DIFERENCIA_ACEPTABLE = 0.0002;
+    double valorEsperado;
 
     //Valores de prueba.
-    double celsiusACalcular = 0.0;
-    double celsiusToFahr = fahrenheit(celsiusACalcular);
-    double valorEsperado = 32.0;
+    const double CERO_CELSIUS = 0.0;
+    const double CERO_CELSIUS_A_FAHR = fahrenheit(CERO_CELSIUS);
+    valorEsperado = 32.0;
 
     //Tests.
-    assert(areEqual(celsiusToFahr, valorEsperado, diferenciaAceptable));
-    printSuccessfulMessage(celsiusACalcular);
+    assert(areEqual(CERO_CELSIUS_A_FAHR, valorEsperado, DIFERENCIA_ACEPTABLE));
+    printSuccessfulMessage(CERO_CELSIUS);
 
-    celsiusACalcular = -50.0;
-    celsiusToFahr = fahrenheit(celsiusACalcular);
+    const double MENOS_CINCUENTA_CELSIUS = -50.0;
+    const double MENOS_CINCUENTA_CELSIUS_A_FAHR = fahrenheit(MENOS_CINCUENTA_CELSIUS);
     valorEsperado = -58.0;
-    assert(areEqual(celsiusToFahr, valorEsperado, diferenciaAceptable));
-    printSuccessfulMessage(celsiusACalcular);
+    assert(areEqual(MENOS_CINCUENTA_CELSIUS_A_FAHR, valorEsperado, DIFERENCIA_ACEPTABLE));
+    printSuccessfulMessage(MENOS_CINCUENTA_CELSIUS);
 
-    celsiusACalcular = 300.0;
-    celsiusToFahr = fahrenheit(celsiusACalcular);
+    const double TRESCIENTOS_CELSIUS = 300.0;
+    const double TRESCIENTOS_CELSIUS_A_FAHR = fahrenheit(TRESCIENTOS_CELSIUS);
     valorEsperado = 572.0;
-    assert(areEqual(celsiusToFahr, valorEsperado, diferenciaAceptable));
-    printSuccessfulMessage(celsiusACalcular);
+    assert(areEqual(TRESCIENTOS_CELSIUS_A_FAHR, valorEsperado, DIFERENCIA_ACEPTABLE));
+    printSuccessfulMessage(TRESCIENTOS_CELSIUS);
 }
 
 /**
@@ -77,28 +78,29 @@ void testFahrenheitToCelsius() {
     printf("TESTS DE CONVERSION DE Fahrenheit A Celsius: \n");
     
     //Epsilon de referencia.
-    double diferenciaAceptable = 0.0002;
+    const double DIFERENCIA_ACEPTABLE = 0.0002;
+    double valorEsperado;
 
     //Valores de prueba.
-    double fahrACalcular = 0.0;
-    double fahrToCelsius = celsius(fahrACalcular);
-    double valorEsperado = -17.7778;
+    const double CERO_FAHR = 0.0;
+    const double CERO_FAHR_A_CELSIUS = celsius(CERO_FAHR);
+    valorEsperado = -17.7778;
 
     //Tests.
-    assert(areEqual(fahrToCelsius, valorEsperado, diferenciaAceptable));
-    printSuccessfulMessage(fahrACalcular);
+    assert(areEqual(CERO_FAHR_A_CELSIUS, valorEsperado, DIFERENCIA_ACEPTABLE));
+    printSuccessfulMessage(CERO_FAHR);
 
-    fahrACalcular = -50.0;
-    fahrToCelsius = celsius(fahrACalcular);
+    const double MENOS_CINCUENTA_FAHR = -50.0;
+    const double MENOS_CINCUENTA_FAHR_A_CELSIUS = celsius(MENOS_CINCUENTA_FAHR);
     valorEsperado = -45.5556;
-    assert(areEqual(fahrToCelsius, valorEsperado, diferenciaAceptable));
-    printSuccessfulMessage(fahrACalcular);
+    assert(areEqual(MENOS_CINCUENTA_FAHR_A_CELSIUS, valorEsperado, DIFERENCIA_ACEPTABLE));
+    printSuccessfulMessage(MENOS_CINCUENTA_FAHR);
 
-    fahrACalcular = 300.0;
-    fahrToCelsius = celsius(fahrACalcular);
+    const double TRESCIENTOS_FAHR = 300.0;
+    const double TRESCIENTOS_FAHR_A_CELSIUS = celsius(TRESCIENTOS_FAHR);
     valorEsperado = 148.889;
-    assert(areEqual(fahrToCelsius, valorEsperado, diferenciaAceptable));
-    printSuccessfulMessage(fahrACalcular);
+    assert(areEqual(TRESCIENTOS_FAHR_A_CELSIUS, valorEsperado, DIFERENCIA_ACEPTABLE));
+    printSuccessfulMessage(TRESCIENTOS_FAHR);
 }
 
 int main(void) {
