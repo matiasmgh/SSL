@@ -123,6 +123,10 @@ gcc hello4.o -o hello4.exe
 
 Esto últimadamente retorna un error, por "una referencia indefinida a 'prontf'", función que no existe en la biblioteca estandar.
 
+```
+C:/msys64/mingw64/bin/../lib/gcc/x86_64-w64-mingw32/10.3.0/../../../../x86_64-w64-mingw32/bin/ld.exe: hello4.o:hello4.c:(.text+0x1c): undefined reference to `prontf'
+```
+
 **2. Corregir en *hello5.c* y generar el ejecutable. Solo corregir lo necesario para que vincule.**
 
 Para realizar esta tarea, utilizo los siguientes comandos.
@@ -130,7 +134,7 @@ Para realizar esta tarea, utilizo los siguientes comandos.
 gcc -c hello5.c -o hello5.o
 gcc hello5.o -o hello5.exe
 ```
-Para lograr vincular solo basta con cambiar la referencia a prontf por printf. Demostrado por lo visto anteriormente, no hay problema con definir printf con los argumentos correctos por encima del main, ni con las asignaciones sin proposito o por llamar a printf sin un parametro numerico. 
+Para lograr vincular solo basta con cambiar la referencia a prontf por printf. Demostrado por lo visto anteriormente, no hay problema con declarar un prototipo de printf con los argumentos correctos por encima del main, ni con las asignaciones sin proposito o por llamar a printf sin un parametro numerico. 
 
 **3. Ejecutar y analizar el resultado.**
 
@@ -208,9 +212,9 @@ El funcionamiento es posible (en el caso de mi compilador) gracias a las funcion
 
 El [manual de GCC](https://gcc.gnu.org/onlinedocs/gcc-3.4.6/gcc/Other-Builtins.html) dice lo siguiente sobre las funciones built-in:
 
->The ISO C90 functions abort, abs, acos, asin, atan2, atan, calloc, ceil, cosh, cos, exit, exp, fabs, floor, fmod, fprintf, fputs, frexp, fscanf, labs, ldexp, log10, log, malloc, memcmp, memcpy, memset, modf, pow, printf, putchar, puts, scanf, sinh, sin, snprintf, sprintf, sqrt, sscanf, strcat, strchr, strcmp, strcpy, strcspn, strlen, strncat, strncmp, strncpy, strpbrk, strrchr, strspn, strstr, tanh, tan, vfprintf, vprintf and vsprintf are all recognized as built-in functions unless -fno-builtin is specified (or -fno-builtin-function is specified for an individual function). All of these functions have corresponding versions prefixed with __builtin_.
+>The ISO C90 functions abort, abs, acos, asin, atan2, atan, calloc, ceil, cosh, cos, exit, exp, fabs, floor, fmod, fprintf, fputs, frexp, fscanf, labs, ldexp, log10, log, malloc, memcmp, memcpy, memset, modf, pow, printf, putchar, puts, scanf, sinh, sin, snprintf, sprintf, sqrt, sscanf, strcat, strchr, strcmp, strcpy, strcspn, strlen, strncat, strncmp, strncpy, strpbrk, strrchr, strspn, strstr, tanh, tan, vfprintf, vprintf and vsprintf are all recognized as built-in functions unless -fno-builtin is specified (or -fno-builtin-function is specified for an individual function). All of these functions have corresponding versions prefixed with \_\_builtin_.
 
-Entre las funciones built-in, existe **printf**, con un prefijo *__builtin_*.
+Entre las funciones built-in, existe **printf**, con un prefijo *\_\_builtin_*.
 
 Es posible entonces hacer que nuestro codigo falle impidiendole al compilador utilizar funciones built-in con el siguiente parametro:
 
@@ -239,5 +243,110 @@ gcc -fno-builtin -fno-builtin-printf hello7.o -o hello7.exe
 Finalmente, esto resulta en un **error de vinculación**. La salida es la extensa y dificil de entender como para escribirla aquí, pero el concepto queda demostrado.
 
 ## Compilación Separada: Contratos y Módulos
+
+**1. Escribir *studio1.c* (sí, *studio1*, no *stdio*) y *hello8.c*. La unidad de traducción *studio1.c* tiene una implementación de la función *prontf*, que es solo un wrapper de la función estandar *printf*:**
+
+```C
+void prontf(const char* s, int i){
+ printf("La respuesta es %d\n", i);
+}
+```
+
+**La unidad de traducción *hello8.c*, muy similar a *hello4.c*, invoca a *prontf*, pero no incluye ningún header.**
+
+```C
+int main(void){
+int i=42;
+ prontf("La respuesta es %d\n", i);
+}
+```
+**2. Investigar como en su entorno de desarrollo puede generar un programa ejecutable que se base en las dos unidades de traducción (i.e., archivos fuente, archivos con extensión .c). Luego generar ese ejecutable y probarlo.**
+
+Existe una manera de realizar la traducción de dos archivos fuente con GCC. El comando, para los *hello8.c* y *studio1.c* anteriores, es el siguiente:
+
+```
+gcc -include studio1.c -c hello8.c -o hello8.o
+```
+
+Con el parametro -include. Esta forma es poco practica a medida los programas aumentan su complejidad y es preferible utilizar headers.
+
+Luego de ensamblar, podemos vincular sin problemas.
+
+```
+gcc hello8.o -o hello8.exe
+```
+```
+La respuesta es 42
+```
+
+**3. Responder ¿que ocurre si eliminamos o agregamos argumentos a la invocación de *prontf*? Justifique.**
+
+Si agrego parametros, por ejemplo, dos integers literales:
+```C
+ prontf("La respuesta es %d\n", i, 42, 88);
+```
+
+Resulta en el siguiente **error de compilación**
+```
+hello8.c: In function 'main':
+hello8.c:3:2: error: too many arguments to function 'prontf'
+    3 |  prontf("La respuesta es %d\n", i, 42, 88);
+      |  ^~~~~~
+```
+
+El error es suficientemente descriptivo; se pasaron demasiados parametros a una función como sucedería con cualquier implementación.
+
+Si en cambio paso menos argumentos, por ejemplo, sin la variable:
+```C
+ prontf("La respuesta es %d\n");
+```
+
+Ahora, el error de compilación es el siguiente:
+
+```
+hello8.c: In function 'main':
+hello8.c:3:2: error: too few arguments to function 'prontf'
+    3 |  prontf("La respuesta es %d\n");
+      |  ^~~~~~
+```
+
+Entonces, en definitiva, la razón de estos errores es que *prontf* es un wrapper que, a su vez, es una función, pero una que recibe una cantidad de parametros establecida. Estos son un array de caracteres y un entero. A partir de ellos, este hace una implementación particular de printf.
+
+```C
+prontf(const char* s, int i);
+```
+
+## Revisitar el punto anterior, esta vez utilizando un contrato de interfaz en un archivo header.
+
+**1. Escribir el contrato en *studio.h***
+
+```C
+#ifndef _STUDIO_H_INCULDED_
+#define _STUDIO_H_INCULDED_
+void prontf(const char*, int);
+#endif
+```
+
+**2. Escribir *hello9.c*, un cliente que si incluye el contrato.**
+
+```C
+#include "studio.h" // Interfaz que importa
+int main(void){
+int i=42;
+ prontf("La respuesta es %d\n", i);
+}
+```
+
+**3. Escribir *studio2.c*, el proveedor que si incluye el contrato.**
+```C
+#include "studio.h" // Interfaz que exporta
+#include <stdio.h> // Interfaz que importa
+void prontf(const char* s, int i){
+ printf("La respuesta es %d\n", i);
+}
+```
+
+**4. Responder: ¿Qué ventaja da incluir el contrato en los clientes y en el proveedor?**
+
 
 
