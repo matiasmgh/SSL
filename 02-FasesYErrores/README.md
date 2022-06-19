@@ -62,11 +62,12 @@ int i=42;
 ```
 **4. Investigar la semantica de la primera linea.**
 ```c
-int printf(const char *s, ...);
+int printf(const char * restrict s, ...);
 ```
-* Retorna un tipo int.
-* Declara una función printf.
-* Recibe una cantidad indeterminada de parametros, pero el primero se asenta que es un puntero a un char constante. Esto no quiere decir que el puntero (la direccion a memoria) es constante, si no que el valor al que apunta lo es. Se podría asignar una nueva dirección de memoria (otro puntero). De esta manera se pasan Strings, que son cadenas de char.
+* Retorna un tipo *int*.
+* Declara una función *printf*.
+* *restrict* exige que el valor de s sea apuntado únicamente por el puntero.
+* Recibe una cantidad indeterminada de parametros, pero el primero se asenta que es un puntero a un *char* constante. Esto no quiere decir que el puntero (la direccion a memoria) es constante, si no que el valor al que apunta lo es. Se podría asignar una nueva dirección de memoria (otro puntero). De esta manera se pasan *Strings*, que son cadenas de *char*.
 
 **1. Preprocesar *hello3.c*, no compilar y generar *hello3.i*. Buscar sus diferencias.**
 
@@ -74,7 +75,7 @@ Para realizar esta tarea, utilizo el siguiente commando.
 ```
 gcc -E hello3.c -o hello3.i
 ```
-Entre ellos practicamente no existe diferencia. Esto es porque el procesador no encontró ningún comentario a quitar o un include para realizar el traspaso de declaraciones y definiciones por encima del main. La única diferencia presente son los flags del preprocesador, que, por ejemplo, indican el comienzo de un archivo.
+Entre ellos practicamente no existe diferencia. Esto es porque el procesador no encontró ningún comentario a quitar o un include para realizar el traspaso de declaraciones y definiciones por encima del main. La única diferencia presente son los flags del preprocesador, que, por ejemplo, indican el comienzo de un archivo. Sirven para dar información al compilador.
 
 ## Compilación
 
@@ -87,7 +88,7 @@ gcc -S hello3.c -o hello3.s
 
 Esto devuelve un error y un warning. Primero, un warning avisandome que escribí "prontf" y que esta función no esta declarada. Me sugiere escribir "printf" que es una función de la biblioteca estandar.
 
-Ademas, devuelve un error por no haber cerrado la llave del main.
+Ademas, devuelve un error por no haber cerrado la llave del main. Este es un error sintactico.
 
 **2. Corregir solo los errores, no los *warnings*, en el nuevo archivo hello4.c y empezar de nuevo, generar4.s, no ensamblar.**
 
@@ -101,7 +102,34 @@ Esta vez solo permanece el warning de la función "prontf" que no existe y que e
 
 El assembler, brevemente, hace lo siguiente:
 
-Primero, el nombre del archivo fuente (que sirve para los debuggers). En segundo lugar se define un dato a partir del literal "La respuesta es %d\n" presente en el codigo fuente. Finalmente, dentro del main se encuentra el llamado a la función "prontf" a partir de un llamado previo a ese dato. 
+Primero, el nombre del archivo fuente (que sirve para los debuggers). En segundo lugar se define un dato a partir del literal "La respuesta es %d\n" presente en el codigo fuente. 
+
+```
+	.file	"hello4.c"
+	.text
+	.def	__main;	.scl	2;	.type	32;	.endef
+	.section .rdata,"dr"
+.LC0:
+	.ascii "La respuesta es %d\12\0"
+	.text
+	.globl	main
+	.def	main;	.scl	2;	.type	32;	.endef
+	.seh_proc	main
+```
+Luego, guarda el valor 42 en una variable luego de preparar la pila y llamar a una función main:
+
+```
+	call	__main
+	movl	$42, -4(%rbp)
+	leaq	.LC0(%rip), %rcx
+```
+
+Finalmente, dentro del main se encuentra el llamado a la función "prontf" a partir de un llamado previo a ese dato. Prepara también el cero, para las funciones que retornan cero.
+
+```
+	call	prontf
+	movl	$0, %eax
+```
 
 **4. Ensamblar *hello4.s* en *hello4.o*, no vincular.**
 
@@ -139,6 +167,8 @@ Para lograr vincular solo basta con cambiar la referencia a prontf por printf. D
 **3. Ejecutar y analizar el resultado.**
 
 Al ejecutar el archivo generado anteriormente, el printf funciona correctamente pero, como este esta mostrando el valor de la variable que espera en su segundo parametro (y yo en *hello5.c* no le pasé un valor), la función muestra por pantalla un valor de una celda de memoria siendo utilizada para otros propositos.
+
+Este es un error pragmatico y no sintactico, semantico o lexico, porque superó todas las fases de traducción.
 
 ## Corrección de Bug
 
@@ -240,7 +270,9 @@ Luego intento vincular con la biblioteca estandar:
 gcc -fno-builtin -fno-builtin-printf hello7.o -o hello7.exe
 ```
 
-Finalmente, esto resulta en un **error de vinculación**. La salida es la extensa y dificil de entender como para escribirla aquí, pero el concepto queda demostrado.
+Finalmente, esto resulta en un **error en la vinculación**. La salida es la extensa y dificil de entender como para escribirla aquí, pero el concepto queda demostrado.
+
+En clase hemos expuesto un documento del estandar C donde se aclara que, a partir del estandar C99, la declaración de funciones de manera implicita fue removida. En mi caso, solamente es posible por GCC, que tiene este agregado propio.
 
 ## Compilación Separada: Contratos y Módulos
 
@@ -266,22 +298,23 @@ Existe una manera de realizar la traducción de dos archivos fuente con GCC. El 
 
 ```
 gcc -include studio1.c -c hello8.c -o hello8.o
+gcc hello8.o -o hello8.exe
 ```
 
 Con el parametro -include. Esta forma es poco practica a medida los programas aumentan su complejidad y es preferible utilizar headers.
 
-Luego de ensamblar, podemos vincular sin problemas.
+Tambien es posible hacerlo totalmente en una sola linea:
+```
+gcc studio1.c hello8.c -o hello8.exe
+```
 
-```
-gcc hello8.o -o hello8.exe
-```
 ```
 La respuesta es 42
 ```
 
 **3. Responder ¿que ocurre si eliminamos o agregamos argumentos a la invocación de *prontf*? Justifique.**
 
-Si agrego parametros, por ejemplo, dos integers literales:
+Si agrego parametros, por ejemplo, dos integers:
 ```C
  prontf("La respuesta es %d\n", i, 42, 88);
 ```
@@ -310,7 +343,7 @@ hello8.c:3:2: error: too few arguments to function 'prontf'
       |  ^~~~~~
 ```
 
-Entonces, en definitiva, la razón de estos errores es que *prontf* es un wrapper que, a su vez, es una función, pero una que recibe una cantidad de parametros establecida. Estos son un array de caracteres y un entero. A partir de ellos, este hace una implementación particular de printf.
+Entonces, en definitiva, la razón de estos errores es que *prontf* es un wrapper que, a su vez, es una función que recibe una cantidad de parametros establecida. Estos son un array de caracteres y un entero. A partir de ellos, este hace una implementación particular de printf.
 
 ```C
 prontf(const char* s, int i);
@@ -347,6 +380,18 @@ void prontf(const char* s, int i){
 ```
 
 **4. Responder: ¿Qué ventaja da incluir el contrato en los clientes y en el proveedor?**
+
+El beneficio de incluir el contrato en los clientes y en el proveedor es la inclusión de los prototipos del contrato. Esto permite al IDE adelantarme errores incluso antes del momento de compilar.
+
+De esta manera tambien se comprueba que el cliente utiliza las funciones de manera correcta y que el proveedor obedece con los prototipos del contrato.
+
+**Punto extra: Investigue sobre bibliotecas. ¿Qué son? ¿Se pueden distribuir? ¿Son portables? ¿Cuales son sus ventajas y desventajas?
+
+Desarrolle y utilice la biblioteca studio.
+
+Una biblioteca es una unificación de varios archivos objeto, osea, codigo previamente compilado. Contienen al codigo compilado y ensamblado. Los tipos de dato, prototipos, etc. estan incluidos en los archivos header asociados a las bibliotecas (por ejemplo, *stdio.h*).
+
+Su distribución es comun, le permite al programador utilizar codigo escrito por otros programadores. Teniendo en cuenta que son archivos ya ensamblados, no son portables mas alla del tipo de arquitectura (puesto que contienen instrucciones de assembler especificas, generadas al momento de compilarse). Su codigo fuente si es portable, solo es necesario compilarlo.
 
 
 
