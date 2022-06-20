@@ -385,13 +385,61 @@ El beneficio de incluir el contrato en los clientes y en el proveedor es la incl
 
 De esta manera tambien se comprueba que el cliente utiliza las funciones de manera correcta y que el proveedor obedece con los prototipos del contrato.
 
-**Punto extra: Investigue sobre bibliotecas. ¿Qué son? ¿Se pueden distribuir? ¿Son portables? ¿Cuales son sus ventajas y desventajas?
+**Punto extra: Investigue sobre bibliotecas. ¿Qué son? ¿Se pueden distribuir? ¿Son portables? ¿Cuales son sus ventajas y desventajas?**
 
-Desarrolle y utilice la biblioteca studio.
+**Desarrolle y utilice la biblioteca studio.**
 
 Una biblioteca es una unificación de varios archivos objeto, osea, codigo previamente compilado. Contienen al codigo compilado y ensamblado. Los tipos de dato, prototipos, etc. estan incluidos en los archivos header asociados a las bibliotecas (por ejemplo, *stdio.h*).
 
 Su distribución es comun, le permite al programador utilizar codigo escrito por otros programadores. Teniendo en cuenta que son archivos ya ensamblados, no son portables mas alla del tipo de arquitectura (puesto que contienen instrucciones de assembler especificas, generadas al momento de compilarse). Su codigo fuente si es portable, solo es necesario compilarlo.
 
+Para desarrollar la biblioteca studio utilizo lo existente. Declaro en mi header la función:
+
+```C
+int randomInt(const int piso, const int techo);
+```
+
+y desarrollo su definición en *studio2.c*:
+
+```C
+int randomInt(const int piso, const int techo) {
+	time_t t;
+    srand(time(&t));
+    return rand() % (techo + 1 - piso) + piso;
+}
+```
+
+Ensamblo mi codigo C en un archivo objeto:
+
+```
+gcc -c studio2.c -o studioLibrary.o
+```
+
+y creo mi libreria con el siguiente comando (a modo de ejemplo no envio a mi carpeta de librerias; ver el Makefile para ver la instalación correcta. Este comando envía la biblioteca a mi directorio actual):
+
+```
+ar rcs studioLibrary.a studioLibrary.o
+```
+
+Y queda disponible la librería con codigo ensamblado para vincular con nuestros programas. Cabe aclarar que el header studio.h no esta incluido; por lo que habría que incluirlo o bien, si no estuviera disponible, declarar el prototipo de las funciones de la libreria.
+
+Luego utilizo la libreria en *hello10_libreria.c*:
+```C
+#include "studio.h" // Interfaz que importa
+int main(void){
+	int i=randomInt(0, 42);
+ 	prontf("La respuesta es %d\n", i);
+}
+```
+
+Y genero el ejecutable utilizando mi libreria con el siguiente parametro:
+
+```
+gcc hello10_libreria.c -L. -l:studioLibrary.a -o hello10_libreria.exe
+```
+
+El parametro "-L." ordena a GCC buscar librerias en el directorio actual, y no es necesario si se instala la librería en directorios que GCC consulta por defecto, como es el caso del Makefile a continuación.
+
+En la entrega incluyo un Makefile que permite instalar la libreria en el directorio de mingw64 y correr el programa de ejemplo (Solo para Windows).
 
 
